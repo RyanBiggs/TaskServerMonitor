@@ -1,0 +1,104 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .tool-status {
+            margin-bottom: 20px;
+        }
+
+            .tool-status.changed {
+                color: green;
+            }
+
+            .tool-status.old {
+                color: red;
+            }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>Task Server</title>
+</head>
+<body>
+    <h1>Task Server Status</h1>
+
+    <div class="tool-status" id="toolStatusA2A">
+        <h2>A2A Task Server</h2>
+        <p>Last Request Time: <span class="lastRequestTime" data-last-request-time=""></span></p>
+        <button class="refreshButton" data-tool-name="A2A">Refresh Status</button>
+    </div>
+
+    <div class="tool-status" id="toolStatusTS1">
+        <h2>TS1 Task Server</h2>
+        <p>Last Request Time: <span class="lastRequestTime" data-last-request-time=""></span></p>
+        <button class="refreshButton" data-tool-name="TS1">Refresh Status</button>
+    </div>
+
+    <div class="tool-status" id="toolStatusBundle">
+        <h2>Bundle Task Server</h2>
+        <p>Last Request Time: <span class="lastRequestTime" data-last-request-time=""></span></p>
+        <button class="refreshButton" data-tool-name="Bundle">Refresh Status</button>
+    </div>
+
+    <button id="refreshAllButton">Refresh All Status</button>
+
+    <div>
+        Last Refreshed: <span id="lastRefreshTime"></span>
+    </div>
+
+    <script>
+
+        // Function to update the last refresh time
+        function updateLastRefreshTime() {
+            var currentTime = new Date();
+            var formattedTime = `${currentTime.toLocaleDateString("en-GB")} - ${currentTime.toLocaleTimeString("en-GB")}`;
+            $("#lastRefreshTime").text(formattedTime);
+        }
+
+        function refreshStatus(toolName) {
+            console.log("Refreshing status for " + toolName + "...");
+            var toolStatusElement = $("#toolStatus" + toolName);
+            $.get("/ToolStatus/GetCurrentStatus")
+                .done(function (data) {
+                    console.log("Refresh successful for " + toolName);
+                    var lastRequestTimeElement = toolStatusElement.find(".lastRequestTime");
+                    var currentTime = new Date();
+                    var lastRequestTime = new Date(data[toolName]);
+                    var timeDifference = (currentTime - lastRequestTime) / (1000 * 60 * 60); // Hours
+
+                    var formattedLastRequestTime = `${lastRequestTime.toLocaleDateString("en-GB")} - ${lastRequestTime.toLocaleTimeString("en-GB")}`;
+                    lastRequestTimeElement.text(formattedLastRequestTime);
+
+                    if (timeDifference > 1) {
+                        lastRequestTimeElement.addClass("old");
+                        lastRequestTimeElement.text("It has been more than an hour since the task server has responded");
+                    } else {
+                        lastRequestTimeElement.removeClass("old");
+                    }
+                })
+                .fail(function (error) {
+                    console.log("Refresh failed for " + toolName + ": " + error.statusText);
+                });
+        }
+
+        $(".refreshButton").click(function () {
+            var toolName = $(this).data("tool-name");
+            console.log("Manual refresh initiated for " + toolName);
+            refreshStatus(toolName);
+            updateLastRefreshTime();
+        });
+
+        $("#refreshAllButton").click(function () {
+            console.log("Manual refresh initiated for all tools.");
+            refreshStatus("A2A");
+            refreshStatus("TS1");
+            refreshStatus("Bundle");
+            updateLastRefreshTime();
+        });
+
+        // Initial refresh on page load
+        refreshStatus("A2A");
+        refreshStatus("TS1");
+        refreshStatus("Bundle");
+        updateLastRefreshTime();
+    </script>
+</body>
+</html>
