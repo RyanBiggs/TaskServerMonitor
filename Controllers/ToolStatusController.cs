@@ -16,6 +16,22 @@ namespace TSMonitor2.Controllers
         {
             public string ToolName { get; set; }
         }
+
+        [HttpPost]
+        public IActionResult SendTeamsMessage()
+        {
+            try
+            {
+                var teamsService = new TeamsService();
+                teamsService.SendMessageToTeamsChannel("59361c30-541a-4dc1-b210-19cc19755449", "19%3aRbsyt93l7Cu4YSE87jk5iku-SotlmaIlLFrfmFqUo8A1%40thread.tacv2", "Hello from ASP.NET Core!");
+
+                return Ok("Message sent successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Failed to send message: " + ex.Message);
+            }
+        }
         //test
         // In your controller action
         [HttpPost]

@@ -3,14 +3,17 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using TSMonitor2;
 using TSMonitor2.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddHostedService<ToolStatusMonitor>(); // Add the ToolStatusMonitor as a hosted service
 
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -37,8 +40,11 @@ app.Run();
 
 namespace ToolStatusApp
 {
+    
     public class Startup
     {
+       
+       
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
